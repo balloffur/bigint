@@ -1,6 +1,6 @@
 #pragma once
 #include <utility>
-#include "bigint_arch.h"
+#include "bigint.h"
 #include <random>
 //primes and factors
 namespace {
