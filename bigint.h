@@ -8,6 +8,7 @@
 #include <utility>
 #include <math.h>
 #include <complex>
+#include <bitset>
 
 static const int BASE_DIGITS = 9;
 static const int BASE = 1000000000;
@@ -21,7 +22,7 @@ static const int SIMPLE_MULT_BORDER=10000;
 static const int FFT_BORDER=1000000;
 
 struct bigint {
-    char sign;
+    int sign;
     std::vector<int> digits;
 
     
@@ -160,7 +161,7 @@ struct bigint {
         this->trim();
     }
 
-    bigint operator += (const bigint& v) {
+    bigint operator+=(const bigint& v) {
         if (sign == v.sign) {
             __internal_add(v);
         } else {
@@ -175,7 +176,7 @@ struct bigint {
         return *this;
     }
 
-    bigint operator -= (const bigint& v) {
+    bigint operator-=(const bigint& v) {
         if (sign == v.sign) {
             if (__compare_abs(*this, v) >= 0) {
                 __internal_sub(v);
@@ -261,6 +262,11 @@ struct bigint {
 
     bigint operator%(const bigint &v) const {
         return divmod(*this, v).second;
+    }
+
+    bigint& operator%=(const bigint &v) {
+        *this=divmod(*this, v).second;
+        return *this;
     }
 
     void operator/=(int v) {
@@ -833,6 +839,15 @@ struct bigint {
         }
         return ans;
     }
+
+    int to_int(){
+        if(isZero()){return 0;}
+        int ans=digits[0];
+        if(digits.size()>1){
+            ans+=(digits[1]%3)*1000000000;
+        }
+        return ans;
+    }
 };
 
 
@@ -876,3 +891,18 @@ bigint sqr_mod(bigint number,const bigint& mod){
     number=(number*number)%mod;
     return number;
 }
+
+
+double to_double(bigint a){
+    if(a.isZero()){return 0.0;}
+    int i=a.digits.size()-1;
+    double ans;
+    while(i>=0){
+        ans*=1000000000.0;
+        ans+=(double)a.digits[i];
+        --i;
+    }
+    if(a.isNegative()){return -ans;}
+    return ans;
+}
+
