@@ -5,7 +5,7 @@ static std::chrono::steady_clock::time_point begin;
 static std::chrono::steady_clock::time_point end;
 static bool is_timing=false;
 
-void time_program(){
+void time(){
     if(is_timing){
         end=std::chrono::steady_clock::now();
         std::cout<<"Execution time:\n";
