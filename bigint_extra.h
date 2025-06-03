@@ -35,90 +35,100 @@ return ans;
 
 
 //primes and factors	
-std::vector<int> very_small_primes={2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97};
-static int prime_bound=0;
-std::vector<int> primes={2};
+std::vector<int> primes={2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839,853,857,859,863,877,881,883,887,907,911,919,929,937,941,947,953,967,971,977,983,991,997};
+static int prime_bound=1000;
+
+//takes ~6ms, all primes under 1000000
+void sieve_mil(){
+   if(prime_bound>=1000000){
+   return;
+   }
+   prime_bound=1000000;
+   primes.reserve(80000);
+   int hub_size=10000;
+    char temp[hub_size]={};
+    for(int i=1;i<25;i++){
+      int start=1000%primes[i];
+      if(start==0){start=1005;} else {
+         start=1000+primes[i]-start;
+         if(start%2==0){start+=primes[i];}
+      }
+      while (start<hub_size)
+      {
+         temp[start]=1;
+         start+=2*primes[i];
+      }
+    }
+    for(int i=1001;i<hub_size;i+=2){
+      if(temp[i]==0){primes.push_back(i);}
+    }
+    for(int i=1;i<1000000/hub_size;i++){
+      char temp_o[hub_size]={};
+      for(int j=1;primes[j]*primes[j]<hub_size*(i+1);j++){
+         int start=hub_size*i%primes[j];
+         if(start!=0){
+            start=primes[j]-start;
+         }
+         if(start%2==0){start+=primes[j];}
+         while (start<hub_size)
+         {
+            temp_o[start]=1;
+            start+=2*primes[j];
+         }
+      }
+      for(int j=1;j<hub_size;j+=2){
+         if(temp_o[j]==0){
+            primes.push_back(hub_size*i+j);
+         }
+      }
+    }
+}
 
 
-//takes ~10ms, all primes under 1000000
-void find_primes_mil(){
-if(prime_bound>=1000000){return;}
-prime_bound=1000000;
-std::vector<char> is_prime(prime_bound,1);
-primes.reserve(78500);
+void sieve_int(){
+   primes.reserve(105151707);
+   sieve_mil();
+   char temp[48576]={};
+   for(int j=1;j<172;j++){
+      int start=primes[j]-1000000%primes[j];
+      if(start%2==0){start+=primes[j];}
+      while(start<48576){
+         temp[start]=1;
+         start+=2*primes[j];
+      }
+   }
+   for(int i=1;i<48576;i+=2){
+      if(temp[i]==0){
+         primes.push_back(1000000+i);
+      }
+   }
+   //power of 2
+   long long hub_size=16384;
 
-for(long long i=3;i<1000;i+=2){
-if(is_prime[i]){
-	primes.push_back(i);
-	for(long long j=i*i;j<prime_bound;j+=i*2){
-		is_prime[j]=0;
-	}
-}
-}
-for(long long i=1001;i<prime_bound;i+=2){
-	if(is_prime[i]){
-		primes.push_back(i);
-		
-	}
-}
-}
-
-//euclid till border
-void find_primes(int n){
-	if(prime_bound<n){
-	prime_bound=n;
-	int switch_border=sqrt(n);
-	if(switch_border%2==0){
-		switch_border--;
-	}
-	std::vector<char> is_prime(prime_bound,1);
-	for(long long i=3;i<switch_border;i+=2){
-	if(is_prime[i]){
-		primes.push_back(i);
-		for(long long j=i*i;j<prime_bound;j+=i*2){
-			is_prime[j]=0;
-		}
-	}
-	}
-	for(long long i=switch_border;i<prime_bound;i+=2){
-		if(is_prime[i]){
-			primes.push_back(i);
-			for(long long j=i*i;j<prime_bound;j+=i*2){
-				is_prime[j]=0;
-			}
-		}
-		}
-	}
-}
-
-//all primes in int. Takes ~ 15s
-void find_primes_int(){
-	if(prime_bound<2147483647){
-	prime_bound=2147483647;
-	std::vector<char> is_prime(prime_bound-1,1);
-	primes.reserve(105097565);
-	for(long long i=3;i<46341;i+=2){
-	if(is_prime[i]){
-		if(i>primes.back()){
-		primes.push_back(i);
-		}
-		for(long long j=i*i;j<prime_bound-1;j+=i*2){
-			is_prime[j]=0;
-		}
-	}
-	}
-	for(long long i=46341;i<prime_bound-1;i+=2){
-		if(is_prime[i] && i>primes.back()){
-			primes.push_back(i);
-		}
-		}
-	primes.push_back(2147483647);
-}
+   for(long long i=0;i<2147483648/hub_size;i++){
+      char temp[hub_size]={};
+      long long cur_r_bound=1048576+(i-1)*hub_size;
+      long long cur_l_bound=1048576+i*hub_size;
+      int prime_bound=sqrt(cur_r_bound);
+      int j=1;
+      while(primes[j]<=prime_bound){
+         int start=primes[j]-cur_l_bound%primes[j];
+         if(start%2==0){start+=primes[j];}
+         while(start<hub_size){
+            temp[start]=1;
+            start+=2*primes[j];
+         }
+         ++j;
+      }
+      for(int i=1;i<hub_size;i+=2){
+         if(temp[i]==0){primes.push_back(cur_l_bound+i);}
+      }
+   }
 }
 
 //counts how many primes are less than n. binary search euclid
 int prime_count(int n){
-	if(prime_bound<n){find_primes((n>1000000)?1000000:n);}
+
 if(n==2){return 1;}
 if(n<2 || n>=prime_bound){
 	return -1;
@@ -265,7 +275,7 @@ bool test_if_prime(bigint a){
 
 
 bigint random_prime_bigint(){
-	find_primes_mil();
+	sieve_mil();
 	bigint ans=random_bigint()*2310+primes[rand10e9(rng)%343+5];
 	while(!MillerRabbin(ans)){
 		ans=random_bigint()*2310+primes[rand10e9(rng)%343+5];
@@ -344,7 +354,7 @@ void pollard_rho(bigint a,factorisation& where){
 
 //simple factorisation using existing primes
 factorisation factorise(bigint a){
-	if(prime_bound<1000000){find_primes_mil();}
+	if(prime_bound<1000000){sieve_mil();}
 	factorisation ans;
 	if(a==1){
 		return ans;
@@ -389,6 +399,7 @@ return true;
 // Combinatorics
 namespace {
 	bigint factorial(int n){
+		if(n<0){return bigint(-1);}
 		bigint ans=1;
 		for(int i=1;i<=n;i++){
 			ans*=i;
@@ -418,6 +429,7 @@ namespace {
 	
 	//fibonacci
 	bigint fibonacci(int n){
+		if(n<0){return bigint(-1);}
 		int small_fibs[]={0,1,1,2,3,5,8,13,21,34,55};
 		if(n<=10){
 			return bigint(small_fibs[n]);
