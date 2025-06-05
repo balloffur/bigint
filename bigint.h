@@ -298,7 +298,7 @@ struct bigint {
     }
 
     int operator%(int v) const {
-        if(BASE%v==0){return (digits[0]%v)*sign;}
+        if(BASE%v==0){return (digits.size()==0?0:(digits[0]%v)*sign);}
         int m = 0;
         for (int i = digits.size() - 1; i >= 0; --i)
             m = (digits[i] + m * (long long) BASE) % v;
@@ -785,6 +785,19 @@ struct bigint {
         return *this;
     }
 
+    bigint& to_pow(bigint n){
+        bigint temp=*this;
+        *this=1;
+        while(n>0){
+            if(n%2==1){
+                *this*=temp;
+            }
+            temp*=temp;
+            n>>=1;
+        }
+        return *this;
+    }
+
     int operator[](int n) const{
         if(n>9*digits.size() || n<0){return 0;}
         return ((digits[n/9]/powers_of_10[n%9])%10);
@@ -851,8 +864,16 @@ struct bigint {
 };
 
 
-//binary gcd 
+//binary gcd
+//if both 0 -- returns 0
+//if one 0 -- returns another
+//if negative -- switch to positive
 bigint gcd(bigint a,bigint b){
+    if(a.isNegative()){a.sign=1;}
+    if(b.isNegative()){b.sign=1;}
+    if(a.isZero() && b.isZero()){return 0;}
+    if(a.isZero()){return b;}
+    if(b.isZero()){return a;}
 	int pow2=std::min(a.shift_to_odd(),b.shift_to_odd());
 	while(a!=0 && b!=0){
 		b.shift_to_odd();

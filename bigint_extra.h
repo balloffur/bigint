@@ -4,6 +4,109 @@
 #include <random>
 
 
+
+//Extended binary GCD. Returns a vector of 3 bigint numbes: Besu coefficients and gcd. Does not work around 0, carefull!
+std::vector<bigint> egcd(bigint x,bigint y){
+    bigint g=1;    
+	while(x%2==0 && y%2==0){
+        x>>=1;        
+		y>>=1;
+        g<<=1;    
+	}
+    bigint u=x;   
+	bigint v=y;
+    bigint A=1;
+	bigint B=0;
+    bigint C=0;
+	bigint D=1;
+    while(u>0){
+    while(u%2==0){int i=u.shift_to_odd();
+        for(;i>0;i--){        
+			if(A%2==0 && B%2==0){
+            A>>=1;            
+			B>>=1;
+        } else {            
+			A=(A+y)>>1;
+            B=(B-x)>>1;        
+		}
+        }    }
+    while(v%2==0){        
+		int i=v.shift_to_odd();
+        for(;i>0;i--){        
+			if(C%2==0 && D%2==0){
+            C>>=1;            
+			D>>=1;
+        } else {            
+			C=(C+y)>>1;
+            D=(D-x)>>1;        
+		}
+        }    
+	}
+    if(u>=v){        
+		u-=v;
+        A-=C;        
+		B-=D;
+    }else{
+        v-=u;        
+		C-=A;
+        D-=B;    
+	}
+    }    
+	std::vector<bigint> ans={C,D,g*v};
+    return ans;}
+
+bigint modular_inverse(bigint x, bigint y){
+ 	bigint g=1;    
+	while(x%2==0 && y%2==0){
+		return -1;
+        x>>=1;        
+		y>>=1;
+        g<<=1;    
+	}
+    bigint u=x;   
+	bigint v=y;
+    bigint A=1;
+	bigint B=0;
+    bigint C=0;
+	bigint D=1;
+    while(u>0){
+    while(u%2==0){int i=u.shift_to_odd();
+        for(;i>0;i--){        
+			if(A%2==0 && B%2==0){
+            A>>=1;            
+			B>>=1;
+        } else {            
+			A=(A+y)>>1;
+            B=(B-x)>>1;        
+		}
+        }    }
+    while(v%2==0){        
+		int i=v.shift_to_odd();
+        for(;i>0;i--){        
+			if(C%2==0 && D%2==0){
+            C>>=1;            
+			D>>=1;
+        } else {            
+			C=(C+y)>>1;
+            D=(D-x)>>1;        
+		}
+        }    
+	}
+    if(u>=v){        
+		u-=v;
+        A-=C;        
+		B-=D;
+    }else{
+        v-=u;        
+		C-=A;
+        D-=B;    
+	}
+    }
+	if(v!=1){return -1;}
+    return (C.isNegative()?C+y:C);
+}
+
+
 //randomness
 std::random_device dev;
 std::mt19937 rng(dev());
@@ -86,6 +189,7 @@ void sieve_mil(){
 
 
 void sieve_int(){
+   prime_bound=2147483646;
    primes.reserve(105151707);
    sieve_mil();
    char temp[48576]={};
@@ -331,10 +435,10 @@ void pollard_rho(bigint a,factorisation& where){
 		bigint x=2;
 		bigint y=2;
 		bigint d;
-		while(stage<100){
-			x=(x*x+1)%a;
-			y=(y*y+1)%a;
-			y=(y*y+1)%a;
+		while(stage<10){
+			x=(x*x+3)%a;
+			y=(y*y+3)%a;
+			y=(y*y+3)%a;
 			if(x>y){
 				d=x-y;
 			} else {
@@ -402,6 +506,18 @@ namespace {
 		if(n<0){return bigint(-1);}
 		bigint ans=1;
 		for(int i=1;i<=n;i++){
+			ans*=i;
+		}
+		return ans;
+	}
+	//i
+	bigint factorial(bigint n){
+		if(n.isZero()){return 1;}
+		if(n>1000000000){return -1;}
+		if(n<0){return bigint(-1);}
+		int m=n.digits[0];
+		bigint ans=1;
+		for(int i=1;i<m;i++){
 			ans*=i;
 		}
 		return ans;

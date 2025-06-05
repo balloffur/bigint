@@ -1,20 +1,13 @@
 #include <iostream>
-#include <conio.h>
 #include <string>
 #include <map>
 #include <vector>
 #include "bigint.h"
 #include "bigint_extra.h"
-#include <Windows.h>
 #include <algorithm>
+#include "expression.h"
 
 const bigint int_cutoff={"2147483647"};
-
-void setcolor(unsigned short color)                
-{                                                   
-    HANDLE hcon = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hcon,color|color);
-}
 
 bool primes_int_initialised=false;
 
@@ -104,6 +97,7 @@ std::string convert_base(int old_base,int new_base,std::string number)
     return ans;
 }
 
+//enum of all available actions
 enum actions{
     skip=1,
     quit,
@@ -146,10 +140,13 @@ enum actions{
     demofib,
     fib,
     primorial,
+    EGCD,
+    MODULAR_INVERSE,
+    EVAL
 };
 
-//huge mess of a map
-std::map<std::string,actions> what_to_do{{"nod",number_of_digits},{"countdigits",number_of_digits},{"primorial",primorial},{"demofib",demofib},{"fib",fib},
+//Maps actions to strings
+std::map<std::string,actions> what_to_do{{"show",show_number},{"reset",reset},{"eval",EVAL},{"inverse",MODULAR_INVERSE},{"egcd",EGCD},{"nod",number_of_digits},{"countdigits",number_of_digits},{"primorial",primorial},{"demofib",demofib},{"fib",fib},
 {"primes",demoprimes},{"powmod",to_powmod_bigint},
 {"gcdall",gcdall},{"bintohex",bintohex},{"bintodec",bintodec},
 {"dectohex",dectohex},{"dectobin",dectobin},{"hextodec",hextodec},{"hextobin",hextobin},
@@ -159,38 +156,47 @@ std::map<std::string,actions> what_to_do{{"nod",number_of_digits},{"countdigits"
 {"prime?",is_prime},{"prime",is_prime},{"rbp",random_big_prime},{"rsp",random_small_prime},{"pn",nthprime},{"init",init}};
 
 void print_help(){
-            std::cout<<"Version 29.05.2025 \n";
-            std::cout<<"List of commands:\n"; \
-            std::cout<<"rsp -- random small prime, under 1000000\n";
-            std::cout<<"rbp -- random big prime of size ~9n\n";
-            std::cout<<"pn -- primes[n] \n";
-            std::cout<<"pi -- how many primes before n. Gotta init for n>1000000 \n";
-            std::cout<<"is_prime -- tells if a number is prime \n";
-            std::cout<<"factor -- factorisation\n";
-            std::cout<<"factorial -- n!\n"; 
+            std::cout<<"Version 04.06.2025 \n";
+            std::cout<<"Format is: command argument_1 argument_2 ...\n";
+            std::cout<<"List of commands:\n";
             std::cout<<"init -- euclid for all integers. saved in primes\n";
-            std::cout<<"gcd -- finds gcd of 2 large number \n";
-            std::cout<<"binomial-- finds binomial coefficient n m \n";
-            std::cout<<"sod -- sum of digits\n";
-            std::cout<<"nod -- number of digits\n";
-            std::cout<<"base -- converts from OLD_BASE to NEW_BASE NUMBER \n";
-            std::cout<<"hextodec,hextobin,dectobin,dectohex,bintohex,bintodec -- base conversions \n";
-            std::cout<<"pow -- to power\n";
-            std::cout<<"powmod -- to power mod\n";
-            std::cout<<"fib -- fibonacci numbers\n";
+            //primes and factors
+            std::cout<<"rsp -- random small prime, under 1000000\n";
+            std::cout<<"rbp -- random big prime of size 9*[n]\n";
+            std::cout<<"pn -- prime number [n] \n";
+            std::cout<<"pi -- how many primes before [n]. Gotta init for [n]>1000000 \n";
+            std::cout<<"prime -- tells if a number is prime \n";
+            std::cout<<"primes -- first [n] primes";
+            std::cout<<"factor -- factorisation\n";
+            std::cout<<"gcd -- finds gcd of 2 large number [a] [b]\n";
+            std::cout<<"egcd -- extended gcd [a] [b]\n";
+            //combinatorics
+            std::cout<<"binomial-- finds binomial coefficient [n] [m] \n";
+            std::cout<<"factorial -- [n]!\n"; 
+            std::cout<<"fib -- fibonacci number [n]\n";
             std::cout<<"demofib -- first few fibonacci nums\n";
-            
+            //digits 
+            std::cout<<"sod -- sum of digits [n]\n";
+            std::cout<<"nod -- number of digits [n]\n";
+            std::cout<<"base -- converts from [OLD_BASE] to [NEW_BASE NUMBER] [n] \n";
+            std::cout<<"hextodec,hextobin,dectobin,dectohex,bintohex,bintodec -- base conversions [n] \n";
+            //modular 
+            std::cout<<"pow -- to power [n] [power]\n";
+            std::cout<<"powmod -- to power mod [n] [power] [mod]\n";
+            std::cout<<"inverse -- modular inverse [n] [mod]\n";
+
+            //eval
+            std::cout<<"eval -- evaluates a mathematical expression. supported operations: + - / * % ^ \n";
 }
 
  int main(){ 
     int temp;
-    setcolor(3);
     system("cls");
     sieve_mil();
     bool is_runnig=true;
     bool no_number=true;
     std::string input;
-    bigint current_number;
+    bigint current_number=0;
     bigint temp_number;
     again:
     while(is_runnig){
@@ -198,12 +204,56 @@ void print_help(){
         if(input.length()==0){
             goto again;
         }
+        //evaluates expressions, if no commands are inputed
+        if(input[0]=='+' || input[0]=='-' || input[0]=='*' || input[0]=='/' || input[0]=='%' || input[0]=='^' ){
+            if(current_number.isNegative()){
+                input="(0"+current_number.to_string()+")"+input;
+            } else {input=current_number.to_string()+input;
+            }
+            try {
+            auto rpn = toRPN(input);
+            current_number = evaluateRPN(rpn);
+            std::cout << current_number<<"\n";
+            }
+        catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+        goto again;
+        }
+        if(input[0]=='('|| input[0]>47 && input[0]<58){
+            {
+            try {
+            auto rpn = toRPN(input);
+            current_number = evaluateRPN(rpn);
+            std::cout << current_number<<"\n";
+            }
+        catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+        }
+        goto again;
+        }
         actions action=what_to_do[input];
         after_input:
         switch (action)
         {
         case skip:
         break;
+        case show_number:
+        std::cout<<current_number<<"\n";
+        break;
+        case EVAL:
+        {
+            std::cin>>input;
+            try {
+        auto rpn = toRPN(input);
+        current_number = evaluateRPN(rpn);
+        std::cout << current_number << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+        break;}
         case help:
             print_help();
             break;
@@ -215,6 +265,7 @@ void print_help(){
             break;
         case reset:
             no_number=true;
+            current_number=0;
             break;
         case init:
 
@@ -257,6 +308,19 @@ void print_help(){
             current_number=gcd(current_number,temp_number);
             std::cout<<current_number<<"\n";
             break;
+        case EGCD:{
+        std::cin>>current_number;
+        std::cin>>temp_number;
+        std::vector<bigint> ans=egcd(current_number,temp_number);
+        std::cout<<"gcd("<<current_number<<","<<temp_number<<")="<<ans[2]<<"\n";
+        std::cout<<"Bezout coefficients are "<<ans[0]<<"   "<<ans[1]<<"\n";   
+        break;
+        }
+        case MODULAR_INVERSE:
+        std::cin>>current_number;
+        std::cin>>temp_number;
+        std::cout<<modular_inverse(current_number,temp_number)<<"\n";
+        break;
         case sum_of_digits:
             std::cin>>current_number;
             std::cout<<sum_digits(current_number)<<"\n";
