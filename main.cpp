@@ -6,10 +6,11 @@
 #include "bigint_extra.h"
 #include <algorithm>
 #include "expression.h"
-
-const bigint int_cutoff={"2147483647"};
+#include "evaluate.hpp"
 
 bool primes_int_initialised=false;
+std::string CURRENT_VERSION="12.06.2025";
+
 
 void print_factor(bigint a){
     if(a==0){
@@ -156,7 +157,7 @@ std::map<std::string,actions> what_to_do{{"show",show_number},{"reset",reset},{"
 {"prime?",is_prime},{"prime",is_prime},{"rbp",random_big_prime},{"rsp",random_small_prime},{"pn",nthprime},{"init",init}};
 
 void print_help(){
-            std::cout<<"Version 04.06.2025 \n";
+            std::cout<<"Version "<<CURRENT_VERSION<<"\n";
             std::cout<<"Format is: command argument_1 argument_2 ...\n";
             std::cout<<"List of commands:\n";
             std::cout<<"init -- euclid for all integers. saved in primes\n";
@@ -186,7 +187,7 @@ void print_help(){
             std::cout<<"inverse -- modular inverse [n] [mod]\n";
 
             //eval
-            std::cout<<"eval -- evaluates a mathematical expression. supported operations: + - / * % ^ \n";
+            std::cout<<"eval -- (testing) enter a comprehansive evaluation mode.\n Can evaluate both big integers and doubles. \n For a simple int calculator just write stuff\n";
 }
 
  int main(){ 
@@ -244,16 +245,9 @@ void print_help(){
         break;
         case EVAL:
         {
-            std::cin>>input;
-            try {
-        auto rpn = toRPN(input);
-        current_number = evaluateRPN(rpn);
-        std::cout << current_number << std::endl;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
-        break;}
+            evl::calculator_mode();
+            break;
+        }
         case help:
             print_help();
             break;
