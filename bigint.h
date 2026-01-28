@@ -12,6 +12,7 @@ static const int32_t BASE_DIGITS = 9;
 static const int32_t BASE = 1000000000;
 static const double PI = 3.14159265358979323846;
 static const int64_t powers_of_2[30] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912};
+//используются для выбора алгоритма умножения
 static const int32_t SIMPLE_MULT_BORDER = 10000;
 static const int32_t FFT_BORDER = 1000000;
 
